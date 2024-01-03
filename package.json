@@ -1,0 +1,23 @@
+{
+  "name": "wacai_script",
+  "version": "1.0.0",
+  "description": "获取挖财账户下所有流水记录，并导出为csv和xlsx文件",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "all_flow": "node index.js"
+  },
+  "keywords": [
+    "wacai",
+    "flows"
+  ],
+  "author": "xuequan",
+  "license": "ISC",
+  "dependencies": {
+    "@aternus/csv-to-xlsx": "^2.1.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "pdf-parse": "^1.1.1",
+    "xlsx-populate": "^1.21.0"
+  }
+}
