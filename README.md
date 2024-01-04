@@ -1,5 +1,6 @@
 ## 获取挖财记账所有流水数据
-将挖财账号下的所有流水，导出为csv和xlsx文件。csv格式目前默认是小星记账导出格式，也可指定钱迹导出格式。
+将挖财账号下的所有流水，导出为csv和xlsx文件。导出文件按照年份，存放在outputs文件夹中。
+csv格式目前默认是小星记账导出格式，也可指定钱迹导出格式。导出的csv文件可以导入到小星记账和钱迹平台
 
 1. 获取挖财账号token，网页登录账号：https://www.wacai.com/
 2. 网页登录账号后，打开浏览器开发者工具，复制cookies中`access_token`的token值
@@ -11,6 +12,8 @@
 ```javascript
 // 最后一个参数 为xiaoxing和qianji 小星记账和钱迹
 FlowParser.parseBookFlowResponse(book, flowData, 'xiaoxing')
+// 小星记账的csv文件需要将utf-8编码改为GBK或GB18030
+Tools.saveJsonArrayInCSVFile(csvFilePath, csvData, 'utf-8')
 ```
 
 如果不需要xlsx文件，注释掉以下代码

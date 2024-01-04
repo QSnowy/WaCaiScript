@@ -17,6 +17,7 @@
     "@aternus/csv-to-xlsx": "^2.1.2",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
+    "iconv-lite": "^0.6.3",
     "pdf-parse": "^1.1.1",
     "xlsx-populate": "^1.21.0"
   }

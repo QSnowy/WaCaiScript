@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs')
 const { convertCsvToXlsx } = require('@aternus/csv-to-xlsx');
 const XlsxPopulate = require('xlsx-populate')
+const iconv = require('iconv-lite')
 
 /**
  * 毫秒转为时间字符串
@@ -48,13 +49,15 @@ function jsonArray2CSVString(items) {
  * 将json数组写入csv格式文件中
  * @param {string} csvFilePath csv目标路径
  * @param {array} items json数组
+ * @param {*} encoding 文件编码格式 默认utf-8
+ * @returns 
  */
-function saveJsonArrayInCSVFile(csvFilePath, items) {
+function saveJsonArrayInCSVFile(csvFilePath, items, encoding = 'utf-8') {
     if (items?.length <= 0) {
         return
     }
     let csvString = jsonArray2CSVString(items)
-    saveStringInFile(csvFilePath, csvString)
+    saveStringInFile(csvFilePath, csvString, encoding)
 }
 
 /**
@@ -141,13 +144,14 @@ function mergeExcelInDir(directory) {
 }
 
 
-function saveStringInFile(name, filestr) {
+function saveStringInFile(name, filestr, encodeing = 'utf-8') {
     try {
         let destPath = `${name}`
         if (fs.existsSync(destPath)) {
             fs.unlinkSync(destPath)
         }
-        fs.writeFileSync(destPath, filestr)
+        let buf = iconv.encode(filestr, encodeing)
+        fs.writeFileSync(destPath, buf)
     } catch (error) {
         console.error('write file error ', error)
     }

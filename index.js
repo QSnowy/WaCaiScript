@@ -64,7 +64,8 @@ async function fetchBookAllFlows(book) {
             // 流水数据写入到本地csv文件 csv名称格式: [year]_[flowCount]_flow.csv
             let bookDir = bookDirFor(book)
             let csvFilePath = path.join(bookDir, `${i}_${csvData.length}_flow.csv`)
-            Tools.saveJsonArrayInCSVFile(csvFilePath, csvData)
+            // 如果是小星格式，将utf-8改为GBK或GB18030
+            Tools.saveJsonArrayInCSVFile(csvFilePath, csvData, 'utf-8')
             if (i == end) {
                 // csv文件转为xlsx文件
                 Tools.batchCsv2XlsInDir(bookDir)
