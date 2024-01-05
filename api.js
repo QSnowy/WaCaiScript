@@ -11,7 +11,8 @@ const urlmap = {
     accounts: 'account/web/query',              // 账户列表
     memebers: 'v2/book/member/web/query',       // 成员列表
     tragets: 'v2/trade/target/web/query',       // 商家列表
-    hideAccounts: 'account/hiddenList'          // 隐藏账户列表
+    hideAccounts: 'account/hiddenList',         // 隐藏账户列表
+    accountFlows: 'account/detail/flow'         // 账户流水
 }
 
 function addInterceptors() {
@@ -106,16 +107,16 @@ function getBookFlows(start, end, bookId) {
     let query = generateFlowQuery(start, end, bookId)
     return new Promise((resolve, reject) => {
         request(urlmap.flows, 'post', undefined, query)
-        .then(resp => {
-            if (resp.code != 0) {
-                reject(Error(resp?.error ?? "未知错误"))
-            }
-            let data = resp?.data ?? {}
-            resolve(data)
-        })
-        .catch(err => {
-            reject(err)
-        })
+            .then(resp => {
+                if (resp.code != 0) {
+                    reject(Error(resp?.error ?? "未知错误"))
+                }
+                let data = resp?.data ?? {}
+                resolve(data)
+            })
+            .catch(err => {
+                reject(err)
+            })
     })
 }
 
@@ -202,6 +203,33 @@ function getBookTradeTargets(bookId) {
     })
 }
 
+function getAccountFlows(accountId, start, end) {
+    let startInterval = new Date(`${start}-01-01 00:00:00`).getTime()
+    let endInterval = new Date(`${end + 1}-01-01 00:00:00`).getTime() - 1
+    let queryData = {
+        "startDate": startInterval,
+        "endDate": endInterval,
+        "accountId": accountId,
+        "timeZoneId": "Asia/Shanghai",
+        "localTime": Date.now(),
+        "queryTagName": true
+    }
+
+    return new Promise((resolve, reject) => {
+        request(urlmap.accountFlows, 'post', {}, queryData)
+            .then(resp => {
+                if (resp.code != 0) {
+                    reject(Error(resp?.error ?? "未知错误"))
+                }
+                let flows = resp.data?.flows ?? []
+                resolve(flows)
+            })
+            .catch(err => {
+                reject(err)
+            })
+    })
+}
+
 /**
  * 生成账本指定年限内所有流水接口的post参数
  * @param {number} start 账单起始年份
@@ -248,6 +276,7 @@ module.exports = {
     getBookIncomeCategories,
     getBookOutgoCategories,
     getBookMembers,
-    getBookTradeTargets
+    getBookTradeTargets,
+    getAccountFlows
 }
 

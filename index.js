@@ -60,7 +60,7 @@ async function fetchBookAllFlows(book) {
         for (let i = start; i <= end; i++) {
             const flowData = await Api.getBookFlows(i, i, book.id)
             /// 解析流水数据，指定解析后的数据格式，默认为小星记账格式
-            let csvData = FlowParser.parseBookFlowResponse(book, flowData, 'xiaoxing')
+            let csvData = FlowParser.parseBookFlowResp2CSVDataArr(book, flowData, 'xiaoxing')
             // 流水数据写入到本地csv文件 csv名称格式: [year]_[flowCount]_flow.csv
             let bookDir = bookDirFor(book)
             let csvFilePath = path.join(bookDir, `${i}_${csvData.length}_flow.csv`)

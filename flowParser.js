@@ -16,25 +16,35 @@ const typeMap = { '1': '支出', '2': '收入', '3': '转账', '4': '借贷', '5
  * @param {string} expType 账单导出格式 xiaoxing qianji 两个平台格式 默认小星格式
  * @returns 流水数组
  */
-function parseBookFlowResponse(book, respData, expType = 'xiaoxing') {
-
+function parseBookFlowResp2CSVDataArr(book, respData, expType = 'xiaoxing') {
     prepare(book)
+    let plainedFlows = decomposeAllFlowsFromResponse(respData)
+    let csvItemArray = []
+    plainedFlows.forEach(flow => {
+        let csvitem = parseFlow2CSVData(flow, expType)
+        csvItemArray.push(csvitem)
+    })
+    console.log('decompose csv items count ', csvItemArray.length)
+    return csvItemArray
+}
 
-    try {
-        const dailyItems = respData?.dailyItems
-        let flowArray = []
-        dailyItems.forEach(daily => {
-            let dailyFlowList = daily['flowList']
-            dailyFlowList.forEach(flow => {
-                let csvitem = parseFlow(flow, expType)
-                flowArray.push(csvitem)
-            })
-        });
-        return flowArray
-    } catch (error) {
-        console.error(`read json file occur error => ${error}`)
-        return []
-    }
+/**
+ * 从接口响应数据中解构所有流水数据item
+ * @param {object} book 账本         
+ * @param {object} respData 流水接口响应数据
+ * @returns 流水item数组
+ */
+function decomposeAllFlowsFromResponse(respData) {
+    /// 解析出所有流水数据到一个数组中
+    const dailyItems = respData?.dailyItems
+    let flowArray = []
+    dailyItems.forEach(daily => {
+        let dailyFlowList = daily['flowList']
+        dailyFlowList.forEach(flow => {
+            flowArray.push(flow)
+        })
+    });
+    return flowArray
 }
 
 /**
@@ -53,7 +63,7 @@ function prepare(book) {
     })
 }
 
-function parseFlow(flow, expType = 'xiaoxing') {
+function parseFlow2CSVData(flow, expType = 'xiaoxing') {
 
     /* 流水时间 */
     let millseconds = flow['bizTime']
@@ -87,13 +97,13 @@ function parseFlow(flow, expType = 'xiaoxing') {
     if (tradetgtName == undefined) {
         tradetgtName = ''
     }
-    
+
     /* 报销 */
     let reimburse = flow.reimburse
     let reimburseTxt = ''
     if (reimburse == 1) {
         reimburseTxt = '待报销'
-    }else if (reimburse == 2) {
+    } else if (reimburse == 2) {
         reimburseTxt = '已报销'
     }
 
@@ -114,6 +124,7 @@ function parseFlow(flow, expType = 'xiaoxing') {
     // 收支类型 支出、收入、借贷、转账
     let typeName = typeMap[recType]
     if (recType == 4 || recType == 5) {
+        // 借贷类型
         mainCateName = '借贷'
     } else if (recType == 1) {
         // 支出类型，找一下所属大类
@@ -123,10 +134,10 @@ function parseFlow(flow, expType = 'xiaoxing') {
             let mainCate = mainOutgoCategories.find(main => main.categoryId == pid)
             if (mainCate == undefined) {
                 console.log(`账本：${currentBook.name}中未找到类目的主类：${subCateName} 时间：${time} ${JSON.stringify(flow)}`)
-            }else {
+            } else {
                 mainCateName = mainCate?.name ?? ''
             }
-        }else {
+        } else {
             // 未找到支出子类，它本身就是主类
             mainCateName = subCateName
         }
@@ -138,15 +149,15 @@ function parseFlow(flow, expType = 'xiaoxing') {
 
     // 转账或借贷时的转入账户
     let account2Name = ''
-    if (recType == 3) {
-        // 转账类型
+    if (recType == 3 || recType == 4 || recType == 5) {
+        // 转账 借贷 类型 有两个账户都要取出来
         let targetId = flow['targetId']
         account2Name = getAccountNameFor(bookAccounts, targetId)
     }
 
     // 小星记账 [类型   日期	大类	小类	金额	账户	账户2	报销	备注	图片	角色	标签	币种	商家]
     // 类型：支出、收入、转账、借贷
-    if (subCateName == '借出' || subCateName == '还款') {
+    if ((subCateName == '借出' || subCateName == '还款') && (recType == 4 || recType == 5)) {
         // 交换 account1Name 和 account2Name
         let templ = account2Name
         account2Name = account1Name
@@ -154,6 +165,9 @@ function parseFlow(flow, expType = 'xiaoxing') {
     }
 
     if (expType == 'xiaoxing') {
+        if (mainCateName == '借贷') {
+            mainCateName = ''
+        }
         let xiaoxingItem = {
             '类型': typeName, '日期': time, '大类': mainCateName, '小类': subCateName, '金额': amount,
             '账户': account1Name, '账户2': account2Name,
@@ -198,7 +212,10 @@ function getAccountNameFor(accounts, accountId) {
 
 
 module.exports = {
-    parseBookFlowResponse
+    parseBookFlowResp2CSVDataArr,
+    decomposeAllFlowsFromResponse,
+    parseFlow2CSVData,
+    prepare
 }
 
 
